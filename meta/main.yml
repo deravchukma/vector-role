@@ -1,0 +1,17 @@
+---
+galaxy_info:
+  role_name: vector
+  namespace: deravchukma
+  author: Mikhail Deravchuk
+  description: Install and configure Vector (log collector) from the official tarball
+  license: MIT
+  min_ansible_version: "2.14"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - noble
+  galaxy_tags:
+    - vector
+    - logs
+    - observability
+dependencies: []

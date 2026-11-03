@@ -1,0 +1,26 @@
+---
+# Версия Vector: https://vector.dev/releases/
+vector_version: "0.60.0"
+# Куда распаковать дистрибутив. Версия в имени каталога: при смене версии старая не перезаписывается
+vector_install_dir: "/opt/vector-{{ vector_version }}"
+# Конфигурация Vector (содержимое vector.yaml) в виде словаря.
+# По умолчанию - демо-пайплайн: генератор syslog-сообщений -> разбор -> вывод в консоль (journald)
+vector_config:
+  sources:
+    dummy_logs:
+      type: demo_logs
+      format: syslog
+      interval: 1
+  transforms:
+    parse_logs:
+      type: remap
+      inputs: [dummy_logs]
+      source: ". = parse_syslog!(string!(.message))"
+  sinks:
+    print:
+      type: console
+      inputs: [parse_logs]
+      encoding:
+        codec: json
+        json:
+          pretty: true

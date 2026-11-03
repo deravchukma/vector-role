@@ -1,0 +1,5 @@
+---
+- name: Test vector role
+  hosts: all
+  roles:
+    - role: deravchukma.vector

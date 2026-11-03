@@ -1,0 +1,8 @@
+---
+# Пути заданы юнитом vector.service из дистрибутива (ExecStart=/usr/bin/vector без --config):
+# Vector читает /etc/vector/vector.yaml и хранит данные в /var/lib/vector
+vector_config_dir: "/etc/vector"
+vector_data_dir: "/var/lib/vector"
+vector_arch: "x86_64-unknown-linux-gnu"
+vector_archive: "vector-{{ vector_version }}-{{ vector_arch }}.tar.gz"
+vector_url: "https://packages.timber.io/vector/{{ vector_version }}/{{ vector_archive }}"
