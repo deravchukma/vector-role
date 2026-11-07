@@ -6,7 +6,7 @@ Ansible-роль для установки [Vector](https://vector.dev) (сбо�
 ## Требования
 
 - ansible-core >= 2.14 (модуль `ansible.builtin.systemd_service`);
-- целевой хост: Ubuntu 24.04 (noble), x86_64, systemd;
+- целевой хост: Ubuntu 24.04 (noble) / 26.04 (resolute) или Oracle Linux 8, x86_64, systemd;
 - доступ с хоста к `packages.timber.io`;
 - права `become` (sudo).
 
@@ -62,7 +62,7 @@ Ansible-роль для установки [Vector](https://vector.dev) (сбо�
 ---
 - src: git@github.com:deravchukma/vector-role.git
   scm: git
-  version: "1.0.0"
+  version: "1.1.0"
   name: vector
 ```
 
@@ -104,14 +104,33 @@ ansible-galaxy install -r requirements.yml -p roles
                 codec: json
 ```
 
-## Проверка роли
+## Тестирование
+
+### Molecule
+
+Сценарий `default` (драйвер `docker`) проверяет роль на `oraclelinux:8` и `ubuntu:latest`.
+Образы собираются из `molecule/default/Dockerfile.j2` (python3, systemd, sudo), PID 1 в контейнере — systemd.
+
+Требования: molecule 6.0.3, molecule-plugins[docker] 23.5.3, ansible-core 2.16,
+коллекции `community.docker` (>= 3.10.2, < 5.0.0) и `ansible.posix`.
+
+```bash
+molecule test        # полный сценарий: create, converge, idempotence, verify, destroy
+molecule converge    # только создать контейнеры и применить роль
+molecule verify      # только проверки
+molecule login --host ubuntu_latest
+molecule destroy
+```
+
+Проверки `verify.yml`: версия Vector совпадает с `vector_version`, `vector validate` проходит по развёрнутому конфигу,
+сервис `running` и `enabled`, пользователь `vector` существует, конфиг на хосте совпадает с `vector_config`,
+в журнале сервиса появляются обработанные события.
+
+### ansible-lint
 
 ```bash
 ansible-lint
-ANSIBLE_ROLES_PATH=.ansible/roles ansible-playbook -i <inventory> tests/test.yml --limit <host>
 ```
-
-`ansible-lint` создаёт симлинк `.ansible/roles/deravchukma.vector` на каталог роли, его использует `tests/test.yml`.
 
 ## Лицензия
 

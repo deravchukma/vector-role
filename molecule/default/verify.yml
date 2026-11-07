@@ -1,0 +1,59 @@
+---
+- name: Verify
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Load role variables
+      ansible.builtin.include_vars:
+        dir: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') }}/{{ item }}"
+      loop: [defaults, vars]
+
+    - name: Get vector version
+      ansible.builtin.command: vector --version
+      register: vector_verify_version
+      changed_when: false
+
+    - name: Check that installed version matches vector_version
+      ansible.builtin.assert:
+        that: vector_verify_version.stdout is search('^vector ' ~ vector_version ~ ' ')
+        fail_msg: "Ожидалась версия {{ vector_version }}, установлена: {{ vector_verify_version.stdout }}"
+
+    - name: Validate config
+      ansible.builtin.command: vector validate --no-environment {{ vector_config_dir }}/vector.yaml
+      register: vector_verify_validate
+      changed_when: false
+
+    - name: Check that config is valid
+      ansible.builtin.assert:
+        that: vector_verify_validate.rc == 0
+
+    - name: Collect service facts
+      ansible.builtin.service_facts:
+
+    - name: Check that vector service is running and enabled
+      ansible.builtin.assert:
+        that:
+          - ansible_facts.services['vector.service'].state == 'running'
+          - ansible_facts.services['vector.service'].status == 'enabled'
+
+    - name: Get vector user
+      ansible.builtin.getent:
+        database: passwd
+        key: vector
+
+    - name: Read deployed config
+      ansible.builtin.slurp:
+        src: "{{ vector_config_dir }}/vector.yaml"
+      register: vector_verify_config
+
+    - name: Check that deployed config matches vector_config
+      ansible.builtin.assert:
+        that: (vector_verify_config.content | b64decode | from_yaml) == vector_config
+
+    - name: Check that vector processes events
+      ansible.builtin.command: journalctl -u vector --since "-1min" --no-pager -o cat
+      register: vector_verify_journal
+      changed_when: false
+      until: vector_verify_journal.stdout is search('"appname"')
+      retries: 10
+      delay: 3

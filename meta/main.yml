@@ -10,6 +10,10 @@ galaxy_info:
     - name: Ubuntu
       versions:
         - noble
+        - resolute
+    - name: EL
+      versions:
+        - "8"
   galaxy_tags:
     - vector
     - logs
