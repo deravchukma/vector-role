@@ -2,7 +2,7 @@
 - name: Vector | Get distrib
   ansible.builtin.get_url:
     url: "{{ vector_url }}"
-    dest: "./{{ vector_archive }}"
+    dest: "{{ vector_download_dir }}/{{ vector_archive }}"
     mode: "0644"
   tags: [download]
 
@@ -17,7 +17,7 @@
 - name: Vector | Unpack distrib
   become: true
   ansible.builtin.unarchive:
-    src: "./{{ vector_archive }}"
+    src: "{{ vector_download_dir }}/{{ vector_archive }}"
     dest: "{{ vector_install_dir }}"
     remote_src: true
     extra_opts: [--strip-components=2]

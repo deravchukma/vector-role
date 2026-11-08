@@ -1,0 +1,6 @@
+FROM {{ item.image }}
+
+# /etc/shadow в Oracle Linux имеет права 0000. Внутри privileged-контейнера (tox в aragast/netology)
+# root не может его прочитать, и sudo падает на PAM. Права 0400 оставляют чтение только root
+RUN dnf install -y python3 sudo systemd ca-certificates && dnf clean all && \
+    chmod 0400 /etc/shadow

@@ -1,6 +1,8 @@
 ---
 # Версия Vector: https://vector.dev/releases/
 vector_version: "0.60.0"
+# Куда скачать архив дистрибутива (абсолютный путь)
+vector_download_dir: "/tmp"
 # Куда распаковать дистрибутив. Версия в имени каталога: при смене версии старая не перезаписывается
 vector_install_dir: "/opt/vector-{{ vector_version }}"
 # Конфигурация Vector (содержимое vector.yaml) в виде словаря.

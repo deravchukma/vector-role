@@ -18,6 +18,7 @@ Ansible-роль для установки [Vector](https://vector.dev) (сбо�
 |---|---|---|
 | `vector_version` | `"0.60.0"` | версия Vector ([релизы](https://vector.dev/releases/)) |
 | `vector_install_dir` | `"/opt/vector-{{ vector_version }}"` | каталог распаковки дистрибутива |
+| `vector_download_dir` | `"/tmp"` | каталог для скачанного архива (абсолютный путь) |
 | `vector_config` | демо-пайплайн | содержимое `vector.yaml` в виде словаря: `demo_logs` -> `remap` (разбор syslog) -> `console` (JSON в journald) |
 
 ### vars/main.yml - внутренние, не переопределять
@@ -32,7 +33,7 @@ Ansible-роль для установки [Vector](https://vector.dev) (сбо�
 
 ## Что делает роль
 
-1. Скачивает архив Vector в домашний каталог пользователя подключения.
+1. Скачивает архив Vector в `vector_download_dir`.
 2. Распаковывает его в `vector_install_dir` (повторно не распаковывает) и делает симлинк `/usr/bin/vector`.
 3. Создаёт системные группу и пользователя `vector` и каталоги конфигурации и данных.
 4. Генерирует `/etc/vector/vector.yaml` из `vector_config`. Перед заменой файл проверяется командой `vector validate`:
@@ -62,7 +63,7 @@ Ansible-роль для установки [Vector](https://vector.dev) (сбо�
 ---
 - src: git@github.com:deravchukma/vector-role.git
   scm: git
-  version: "1.1.0"
+  version: "1.1.1"
   name: vector
 ```
 
@@ -125,6 +126,23 @@ molecule destroy
 Проверки `verify.yml`: версия Vector совпадает с `vector_version`, `vector validate` проходит по развёрнутому конфигу,
 сервис `running` и `enabled`, пользователь `vector` существует, конфиг на хосте совпадает с `vector_config`,
 в журнале сервиса появляются обработанные события.
+
+### Tox
+
+`tox.ini` проверяет роль на разных версиях Ansible на управляющей машине: Python 3.9 × ansible-core 2.14 / 2.15.
+Каждое окружение запускает облегчённый сценарий molecule `tox` (драйвер `podman`, одна платформа `oraclelinux:8`,
+этапы `dependency, destroy, create, converge, verify, destroy`). `converge.yml` и `verify.yml` общие со сценарием `default`.
+
+Запуск в контейнере с podman, tox и Python 3.9:
+
+```bash
+docker run --privileged=True -v <путь к роли>:/opt/vector-role -w /opt/vector-role -it aragast/netology:latest /bin/bash
+tox
+```
+
+Перед тестом tox выполняет `molecule/tox/prepare-cgroups.sh`: на хосте с cgroup v2 без этого podman внутри контейнера
+не может создать контейнер. `molecule/tox/Dockerfile.j2` выставляет `/etc/shadow` права `0400`:
+с правами `0000` в privileged-контейнере не работает `sudo`.
 
 ### ansible-lint
 

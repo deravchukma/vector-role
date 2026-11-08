@@ -1,0 +1,5 @@
+selinux
+lxml
+molecule==6.0.3
+molecule-plugins[podman]==23.5.3
+jmespath
